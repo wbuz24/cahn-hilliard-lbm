@@ -19,9 +19,11 @@ Compile with make
 make
 ```
 
+Model developed by Frida Ronning & Anirban Roy 
+
 ## Python
 
-Model developed by Frida 
+Model written & developed by Frida Ronning & Anirban Roy 
 
 The code is written and tested in Python 3.10.11 and uses the following packages:
 
@@ -69,7 +71,7 @@ Dr. Yu-kai Weng
 
 Anirban Roy
 
-Frida Roenning 
+Frida Ronning 
 
 ## Undergraduate Students
 
