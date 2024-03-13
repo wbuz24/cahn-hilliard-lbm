@@ -19,7 +19,7 @@ Compile with make
 make
 ```
 
-Model developed by Frida Ronning & Anirban Roy 
+Model developed by Frida Roenning & Anirban Roy 
 
 ## Python
 

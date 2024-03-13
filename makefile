@@ -1,8 +1,7 @@
 FILES = bin/Cahn-Hilliard
 CXX = g++
 CFLAGS = -Wall -Wextra -std=c++11 -I/include -I./include
-# FLIB = $(framework)/lib/libframework.a
-SRC = src/main.cpp
+SRC = src/main.cpp src/setup.cpp
 INC = include/Cahn-Hilliard.hpp
 
 all: 

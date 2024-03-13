@@ -1,3 +1,5 @@
+ /******************************** main.cpp *********************************/
+
 /* UTK PEM Electrolyzer two-phase flow model 
  * Implemented in cpp by Will Buziak
  * Model developed by Frida Ronning and Anirban Roy 
@@ -5,6 +7,7 @@
  *  Dr. Matthew Mench
  *  Dr. Dougles Aaron
 */
+
 
 #include <cstdio>
 #include <iostream>
@@ -14,17 +17,27 @@
 #include "Cahn-Hilliard.hpp"
 using namespace std;
 
-#define _USE_MATH_DEFINES
-
-
 int main(int argc, char** argv) {
+	
+  /*****************************************************************/
+	/************** CH_Base.py definitions are here ******************/
+
   /* Constant Definitions */
   int nLB, maxIter, nx, ny;
   double lx, ly, deltax, deltay, ref_len, we, mlb, cont_angle;
-  vector <int> periodicity;
+
+  /* 2D vectors */
+  vector < vector <int> > periodicity;
+//  vector < <Node> > domain; 
+  Node *n;
 
   /* Flow Definitions*/
   double nuP, rhoP, rho0, rho1, rho2, phi1, phi2, deltaM, sigmaP, sigma, deltaT, Re, uP, uLB, nulb, density_ratio, viscosity_ratio, mu1, mu2, nu1, nu2, k, diff, beta, d_1, d_2, Pe; 
+
+	
+	/* Class definition */
+	vector <Node *> domain;
+	Node *test;
 
   /* Lattice Definition */
   int e[9][2] = {
@@ -64,13 +77,12 @@ int main(int argc, char** argv) {
   sigma = .0001; // has to be less than 1e-3
   Re = 0; /* Reynolds number */
 
-
   uP = (nuP * Re) / (ref_len + deltax); // velocity in physical units
   deltaM = (rhoP / rho0) * (deltax * deltax * deltax);
   deltaT = sqrt((sigma / sigmaP) * deltaM);
   nulb = nuP / ((deltax*deltax) / deltaT); // kinematic viscosity
 
-  periodicity.resize(2, 0); /* Periodic boundary conditions */
+  periodicity.resize(2); /* Periodic boundary conditions */
 
   /* Velocity in lattice units */
   if (uP != 0) uLB = uP/(deltax/deltaT);
@@ -105,9 +117,19 @@ int main(int argc, char** argv) {
   mlb = (1 / Pe) / beta;
   cont_angle = M_PI / 4;
 
+	/* "plt" variables are for plotting in python and are currently not included*/
 
   /*****************************************************************/
   /************************Start of Main****************************/
 
-  printf("%f\n", deltaT);
+	test = new Node;
+
+	/* Initialize a 2D vector of nodes */
+	// Unique for cpp, must initialize all vectors
+	// traverse the domain, creating new nodes and initializing their values
+
+  domain = Setup(nx, ny);
+	test->initial_config(maxIter);
+
+  /* Initialize Mu and Tau */
 }
