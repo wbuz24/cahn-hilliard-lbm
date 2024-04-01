@@ -9,15 +9,15 @@
   *   Dr. Dougles Aaron
 	*/
 
-#include "Cahn-Hilliard.hpp"
+#include "cahn-hilliard.hpp"
+#include <cstdio>
 using namespace std;
 
-vector <Node *> Setup(int nx, int ny) {
-	vector <Node *> domain;
+void Domain::Setup() {
 	Node *n;
 	int i;
 
-	for (i = 0; i < nx * ny; i++) {
+	for (i = 0; i < Nx * Ny; i++) {
 		n = new Node;
 
 		n->Phi = 0;
@@ -32,13 +32,35 @@ vector <Node *> Setup(int nx, int ny) {
 		n->G_bar_in.resize(9, 0);
 		n->G_bar_out.resize(9, 0);
 
-		domain.push_back(n);
+		Domain.push_back(n);
 	}
 
-	return domain;
+	printf("Sanity check: nx * ny: %d domain size: %ld\n", Nx * Ny, Domain.size());
 }
 
-void Node::initial_config(int maxIter) {
+void Domain::Domain_initialize() {
+	bool read_flag = 0;
+	vector <Node *> temp_domain;
+
+	if (read_flag) {
+		/* Optionally read in a domain from a file */
+	}
+	else {
+		
+
+	}
+
+}
+
+void Node::Initial_config(Domain *domain, int maxIter) {
+	bool restart_flag = 0;
+	long restart_iter; // Set when calling restart
+
+	restart_iter = 30000;
+
+	domain->Domain_initialize();
+
+	(void) restart_flag;
 	(void) maxIter;
 }
 

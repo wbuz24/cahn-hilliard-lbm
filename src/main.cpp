@@ -14,7 +14,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-#include "Cahn-Hilliard.hpp"
+#include "cahn-hilliard.hpp"
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 	/************** CH_Base.py definitions are here ******************/
 
   /* Constant Definitions */
-  int nLB, maxIter, nx, ny;
+  long nLB, maxIter, nx, ny;
   double lx, ly, deltax, deltay, ref_len, we, mlb, cont_angle;
 
   /* 2D vectors */
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
 	
 	/* Class definition */
-	vector <Node *> domain;
+	Domain *domain;
 	Node *test;
 
   /* Lattice Definition */
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
 
   if (argc != 2) {
-    printf("./bin/main nLB\n");
+    printf("./bin/cahn-hilliard Number-Of-Lattice-Units\n");
     return 0;
   }
 
@@ -62,11 +62,12 @@ int main(int argc, char** argv) {
   ly = .001;
   ref_len = ly;
 
+
   /* Grid domain bounds */
   deltax = ly / (nLB - 1);
   deltay = deltax;
-  nx = (int) lx/deltax;
-  ny = (int) ly/deltay;
+  nx = lx/deltax;
+  ny = ly/deltay;
   
   nuP = .000000364; // viscosity of water in physical units
   rhoP = 972; // density of water in physical units
@@ -123,13 +124,17 @@ int main(int argc, char** argv) {
   /************************Start of Main****************************/
 
 	test = new Node;
+	domain = new Domain;
+
+	domain->Nx = nx;
+	domain->Ny = ny;
 
 	/* Initialize a 2D vector of nodes */
 	// Unique for cpp, must initialize all vectors
 	// traverse the domain, creating new nodes and initializing their values
 
-  domain = Setup(nx, ny);
-	test->initial_config(maxIter);
+  domain->Setup();
+	test->Initial_config(domain, maxIter);
 
   /* Initialize Mu and Tau */
 }

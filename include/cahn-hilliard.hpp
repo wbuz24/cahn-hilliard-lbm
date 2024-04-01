@@ -19,7 +19,17 @@ public:
 
   std::vector <Node *> Neighbors; /* Array of node pointers, size will be 9 */
 
-	void initial_config(int maxIter);
+	void Initial_config(class Domain *domain, int maxIter);
 };
 
-std::vector <Node *> Setup(int nx, int ny);
+class Domain {
+public:
+	int Nx;
+	int Ny;
+	std::vector <Node *> Domain;
+
+
+	void Setup();
+	void Domain_initialize();
+};
+
