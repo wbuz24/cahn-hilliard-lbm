@@ -1,4 +1,3 @@
-
  	/******************************** setup.cpp *********************************/
 
   /* UTK PEM Electrolyzer two-phase flow model 
@@ -11,6 +10,7 @@
 
 #include "cahn-hilliard.hpp"
 #include <cstdio>
+#include <fstream>
 using namespace std;
 
 void Domain::Setup() {
@@ -38,16 +38,31 @@ void Domain::Setup() {
 	printf("Sanity check: nx * ny: %d domain size: %ld\n", Nx * Ny, Domain.size());
 }
 
-void Domain::Domain_initialize() {
-	bool read_flag = 0;
-	vector <Node *> temp_domain;
+/* Optionally read in csv file, must be inserted on command line */
+void Domain::Read_CSV(vector <int> &temp_domain) {
+  int curr; 
+  char temp; 
+	ifstream fin;
 
-	if (read_flag) {
+  /* read each line and parse for each number */
+	fin.open(Inputfile);
+  do { 
+    scanf("%d%c", &curr, &temp); 
+
+  } while(temp != '\n'); 
+	
+	fin.close();
+}
+
+void Domain::Domain_initialize() {
+	vector <int> temp_domain;
+
+	if (Read_Flag) {
 		/* Optionally read in a domain from a file */
+		Read_CSV(temp_domain);
 	}
 	else {
-		
-
+  	
 	}
 
 }

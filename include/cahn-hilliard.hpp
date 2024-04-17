@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 
 class Node {
 public:
@@ -27,9 +28,11 @@ public:
 	int Nx;
 	int Ny;
 	std::vector <Node *> Domain;
-
+	std::string Inputfile;
+	bool Read_Flag;
 
 	void Setup();
+	void Read_CSV(std::vector <int> &temp_domain);
 	void Domain_initialize();
 };
 

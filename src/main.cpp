@@ -11,9 +11,9 @@
 
 #include <cstdio>
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <cmath>
+#include <cstring>
 #include "cahn-hilliard.hpp"
 using namespace std;
 
@@ -50,9 +50,9 @@ int main(int argc, char** argv) {
   double h[9] = {
     {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
 
-  if (argc != 2) {
-    printf("./bin/cahn-hilliard Number-Of-Lattice-Units\n");
-    return 0;
+  if (argc > 3 || argc < 2) {
+    printf("./bin/cahn-hilliard Number-Of-Lattice-Units Input-File\n");
+		exit(0);
   }
 
   /* Initialize a domain, likely will become input args */
@@ -128,6 +128,11 @@ int main(int argc, char** argv) {
 
 	domain->Nx = nx;
 	domain->Ny = ny;
+	domain->Read_Flag = 0;
+	if (argc == 3) {
+		domain->Inputfile = argv[2];
+		domain->Read_Flag = 1;
+	}
 
 	/* Initialize a 2D vector of nodes */
 	// Unique for cpp, must initialize all vectors
