@@ -128,10 +128,10 @@ int main(int argc, char** argv) {
 
 	domain->Nx = nx;
 	domain->Ny = ny;
-	domain->Read_Flag = 0;
+	domain->Read_flag = 0;
 	if (argc == 3) {
 		domain->Inputfile = argv[2];
-		domain->Read_Flag = 1;
+		domain->Read_flag = 1;
 	}
 
 	/* Initialize a 2D vector of nodes */
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
 	// traverse the domain, creating new nodes and initializing their values
 
   domain->Setup();
-	test->Initial_config(domain, maxIter);
+	test->Initial_config(domain, maxIter, ref_len, deltax);
 
   /* Initialize Mu and Tau */
 }

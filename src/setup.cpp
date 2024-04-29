@@ -54,26 +54,46 @@ void Domain::Read_CSV(vector <int> &temp_domain) {
 	fin.close();
 }
 
-void Domain::Domain_initialize() {
+void Domain::Domain_initialize(double ref_len, double deltax) {
 	vector <int> temp_domain;
+	double pitch_length, sphere_radius;
+	int i, j;
 
-	if (Read_Flag) {
+	if (Read_flag) {
 		/* Optionally read in a domain from a file */
 		Read_CSV(temp_domain);
 	}
 	else {
-  	
+		pitch_length = (ref_len / deltax) / 5;
+		sphere_radius = pitch_length / 6;
+
+		/* create a temporary domain */
+		temp_domain.resize(Nx * Ny, 0);
+
+		/* row-col justification: vec[i][j] = vec[i * rows + j] */
+		for (i = 0; i < Nx; i++) {
+			for (j = 0; j < Ny; j++) {
+				/* comment for solid walls on edges */
+				if (!j) temp_domain[i * Nx + j] = 20;
+				if (j == Ny - 1) temp_domain[i * Nx + j] = 20;
+				if (!i) temp_domain[i * Nx + j] = 20;
+				if (i == Nx - 1) temp_domain[i * Nx + j] = 20;
+			}
+		}
 	}
+
+	/* set the domain node values */
+
 
 }
 
-void Node::Initial_config(Domain *domain, int maxIter) {
+void Node::Initial_config(Domain *domain, int maxIter, double ref_len, double deltax) {
 	bool restart_flag = 0;
 	long restart_iter; // Set when calling restart
 
 	restart_iter = 30000;
 
-	domain->Domain_initialize();
+	domain->Domain_initialize(ref_len, deltax);
 
 	(void) restart_flag;
 	(void) maxIter;

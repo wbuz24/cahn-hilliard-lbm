@@ -20,7 +20,7 @@ public:
 
   std::vector <Node *> Neighbors; /* Array of node pointers, size will be 9 */
 
-	void Initial_config(class Domain *domain, int maxIter);
+	void Initial_config(class Domain *domain, int maxIter, double ref_len, double deltax);
 };
 
 class Domain {
@@ -29,10 +29,10 @@ public:
 	int Ny;
 	std::vector <Node *> Domain;
 	std::string Inputfile;
-	bool Read_Flag;
+	bool Read_flag;
 
 	void Setup();
 	void Read_CSV(std::vector <int> &temp_domain);
-	void Domain_initialize();
+	void Domain_initialize(double ref_len, double deltax);
 };
 
