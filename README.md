@@ -8,7 +8,7 @@ The code is based on the works of by T. Lee, et al., 2005 1, 2 and 3.
 
 ## C++ Model
 
-Written by Will Buziak
+Written by Undergraduate students Will Buziak & Price Lenoir
 
 Dependencies:
  - make
@@ -41,3 +41,4 @@ Frida Ronning
 ## Undergraduate Students
 
 Will Buziak
+Price Lenoir
