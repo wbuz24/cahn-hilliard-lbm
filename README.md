@@ -41,4 +41,5 @@ Frida Ronning
 ## Undergraduate Students
 
 Will Buziak
+
 Price Lenoir
