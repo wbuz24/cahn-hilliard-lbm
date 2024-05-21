@@ -20,6 +20,14 @@ Compile with make
 make
 ```
 
+Run from the command line
+
+```
+./bin/cahn-hilliard Number-Of-Lattice-Units Input-File
+```
+
+An input file can be optionally specified, if so it will read in a csv file that will then apply to the domain.
+
 Translated from [Python Model](https://github.com/wbuz24/UTK-LBM-Electrolyzer-Project) developed by Frida Roenning & Anirban Roy 
 
 ## Advisors

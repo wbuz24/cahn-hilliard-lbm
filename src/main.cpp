@@ -135,10 +135,14 @@ int main(int argc, char** argv) {
 	}
 
 	/* Initialize a 2D vector of nodes */
+
+  domain->Setup();
+
 	// Unique for cpp, must initialize all vectors
 	// traverse the domain, creating new nodes and initializing their values
 
-  domain->Setup();
+  /* Initial_config function comes from setup.cpp & is translated from setup.py */
+
 	test->Initial_config(domain, maxIter, ref_len, deltax);
 
   /* Initialize Mu and Tau */

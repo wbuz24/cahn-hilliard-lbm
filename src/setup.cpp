@@ -13,10 +13,12 @@
 #include <fstream>
 using namespace std;
 
+/* Domain constructor */
 void Domain::Setup() {
 	Node *n;
 	int i;
 
+  /* Create an empty domain with fresh nodes */
 	for (i = 0; i < Nx * Ny; i++) {
 		n = new Node;
 
@@ -24,6 +26,7 @@ void Domain::Setup() {
 		n->Rho = 0;
 		n->P = 0;
 
+		/* Create vectors with zeros */
 		n->U.resize(2, 0);
 		n->H.resize(2, 0);
 		n->H_bar_in.resize(9, 0);
@@ -84,6 +87,7 @@ void Domain::Domain_initialize(double ref_len, double deltax) {
 
 	/* set the domain node values */
 
+	// Hey, Price this is where I am at right now 
 
 }
 
@@ -93,6 +97,7 @@ void Node::Initial_config(Domain *domain, int maxIter, double ref_len, double de
 
 	restart_iter = 30000;
 
+	/* This all mimics the python code */
 	domain->Domain_initialize(ref_len, deltax);
 
 	(void) restart_flag;
