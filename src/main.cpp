@@ -1,149 +1,118 @@
- /******************************** main.cpp *********************************/
-
-/* UTK PEM Electrolyzer two-phase flow model 
- * Implemented in cpp by Will Buziak
- * Model developed by Frida Ronning and Anirban Roy 
- * Advisors: 
- *  Dr. Matthew Mench
- *  Dr. Dougles Aaron
-*/
-
-
 #include <cstdio>
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <cstring>
-#include "cahn-hilliard.hpp"
+#include "Domain.hpp"
 using namespace std;
 
 int main(int argc, char** argv) {
-	
-  /*****************************************************************/
-	/************** CH_Base.py definitions are here ******************/
+    if (argc > 3 || argc < 2) {
+        printf("Usage: ./bin/cahn-hilliard <Number of lattice units> <Input file>\n");
+        return 1;
+    }
 
-  /* Constant Definitions */
-  long nLB, maxIter, nx, ny;
-  double lx, ly, deltax, deltay, ref_len, we, mlb, cont_angle;
+    // Lattice Definition
+    int e[9][2] = {
+        {1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, 0},
+        {0, -1}, {-1, 1}, {-1, 0}, {-1, -1} };
 
-  /* 2D vectors */
-  vector < vector <int> > periodicity;
-//  vector < <Node> > domain; 
-  Node *n;
+    double weight[9] = {
+        {1/36}, {1/9}, {1/36}, {1/9}, {4/9}, {1/9}, {1/36}, {1/9}, {1/36} };
 
-  /* Flow Definitions*/
-  double nuP, rhoP, rho0, rho1, rho2, phi1, phi2, deltaM, sigmaP, sigma, deltaT, Re, uP, uLB, nulb, density_ratio, viscosity_ratio, mu1, mu2, nu1, nu2, k, diff, beta, d_1, d_2, Pe; 
+    double h[9] = {
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
 
-	
-	/* Class definition */
-	Domain *domain;
-	Node *test;
+    long nLB = atoi(argv[1]); // Number of lattice units
+    long maxIter = 10001;
 
-  /* Lattice Definition */
-  int e[9][2] = {
-    {1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, 0},
-    {0, -1}, {-1, 1}, {-1, 0}, {-1, -1} };
+    // Physical domain size [meters]
+    double lx = 1e-3, ly = 1e-3;
+    double ref_len = ly;      // Reference length in physical units
 
-  double weight[9] = {
-    {1/36}, {1/9}, {1/36}, {1/9}, {4/9}, {1/9}, {1/36}, {1/9}, {1/36} };
+    // Lattice spacing in the x and y directions
+    double deltaX = ly / (nLB - 1);
+    double deltaY = deltaX;   // Uniform grid
 
-  double h[9] = {
-    {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
+    // Number of lattice points in the x and y directions
+    long nx = lx / deltaX;
+    long ny = ly / deltaY;
 
-  if (argc > 3 || argc < 2) {
-    printf("./bin/cahn-hilliard Number-Of-Lattice-Units Input-File\n");
-		exit(0);
-  }
+    // Viscosity and density of the fluid (water) in physical units
+    double nuP = 3.64e-7;     // Viscosity of water at 80°C [m^2/s]
+    double rhoP = 972.0;      // Density of water at 80°C [kg/m^3]
+    double rho0 = 1.0;        // Density of water in lattice units
+    
+    // Limits of the order parameter
+    double phi1 = 1.0, phi2 = 0.0;
 
-  /* Initialize a domain, likely will become input args */
-  nLB = atoi(argv[1]); // number of lattice units
-  maxIter = 10001;
-  lx = .001;
-  ly = .001;
-  ref_len = ly;
+    // Surface tension of the air-water interface
+    double sigmaP = 6.28e-2;  // Surface tension in physical units [kg/s^2]
+    double sigma = 1e-3;      // Lattice units (must be less than 1e-3)
 
+    // Reynolds number
+    double Re = 0.0;          // Assume Re = 0 for now
 
-  /* Grid domain bounds */
-  deltax = ly / (nLB - 1);
-  deltay = deltax;
-  nx = lx/deltax;
-  ny = ly/deltay;
-  
-  nuP = .000000364; // viscosity of water in physical units
-  rhoP = 972; // density of water in physical units
-  rho0 = 1; // density of water in lattice units
-  phi1 = 1;
-  phi2 = 0; // limits of the order parameter
-  sigmaP = .0628; // surface tension of air-water interface
-  sigma = .0001; // has to be less than 1e-3
-  Re = 0; /* Reynolds number */
+    // Velocity in physical units
+    double uP = (nuP * Re) / ref_len;
 
-  uP = (nuP * Re) / (ref_len + deltax); // velocity in physical units
-  deltaM = (rhoP / rho0) * (deltax * deltax * deltax);
-  deltaT = sqrt((sigma / sigmaP) * deltaM);
-  nulb = nuP / ((deltax*deltax) / deltaT); // kinematic viscosity
+    // Derived quantities
+    double deltaM = (rhoP / rho0) * pow(deltaX, 3);  // Mass per lattice volume
+    double deltaT = sqrt((sigma / sigmaP) * deltaM); // Lattice time step
 
-  periodicity.resize(2); /* Periodic boundary conditions */
+    // Kinematic viscosity in lattice units
+    double nulb = nuP / (pow(deltaX, 2) / deltaT);
 
-  /* Velocity in lattice units */
-  if (uP != 0) uLB = uP/(deltax/deltaT);
-  else uLB = deltaT / deltax;
+    // Velocity in lattice units (should be much smaller than the speed of sound, 1/3)
+    double uLB = (uP != 0) ? uP / (deltaX / deltaT) : deltaT / deltaX;
 
-  density_ratio = .001;
-  viscosity_ratio = 10;
+    // Density and viscosity ratios for water (species 1) and air (species 2)
+    double densityRatio = 1e-3;   // Ratio rho2/rho1
+    double viscosityRatio = 10.0; // Ratio nu2/nu1
 
-  rho1 = rho0;
-  rho2 = density_ratio * rho0;
-  nu1 = nulb;
-  nu2 = viscosity_ratio * nulb;
+    // Species 1 (water), Species 2 (air)
+    double rho1 = rho0, rho2 = densityRatio * rho0;
+    double nu1 = nulb, nu2 = viscosityRatio * nulb;
 
-  mu1 = rho1*nu1;
-  mu2 = rho2*nu2;
+    // Dynamic viscosity
+    double mu1 = rho1 * nu1;
+    double mu2 = rho2 * nu2;
 
-  /* Cahn Hilliard parameters define surface tension */
-  diff = .1 * (ly/deltax); // diffusive interface thickness
-  k = (3/2) * sigma * diff / (sqrt(phi1 - phi2));
-  beta = (12 / ((phi1 - phi2) * (phi1 - phi2) * (phi1 - phi2) * (phi1 - phi2))) * (sigma/diff);
+    // Cahn-Hilliard parameters define surface tension
+    double diff = 0.1 * (ly / deltaX);  // Diffusive interface thickness
+    double k = (3.0 / 2.0) * sigma * diff / sqrt(phi1 - phi2);  // Surface tension coefficient
+    double beta = (12.0 / pow((phi1 - phi2), 4)) * (sigma / diff);  // Energy parameter
 
-  /* Diffusion coefficient in water */
-  d_1 = .00000000242; // for O2
-  d_1 = .000000242;   // for water
-  
-  /* Pecelet number */
-  if (uP != 0) Pe = (uP * diff * deltax) / d_1;
-  else Pe = ((uLB * deltax) / deltaT) * ((diff * deltax) / d_1);
+    // Diffusion coefficients
+    double D_2 = 2.42e-7;  // Diffusion coefficient of O2 in water [m^2/s]
+    double D_1 = 2.42e-9;  // Diffusion coefficient of water in water [m^2/s]
 
-  /* Weber Number definition */
-  we = (uLB * uLB) * ((ref_len / 2) / deltax) * ((rho1-rho2)/sigma);
-  mlb = (1 / Pe) / beta;
-  cont_angle = M_PI / 4;
+    // Weber number
+    double We = pow(uLB, 2) * (ref_len / deltaX) * (rho1 - rho2) / sigma;
 
-	/* "plt" variables are for plotting in python and are currently not included*/
+    // Pecelet number definition
+    double Pe = (uP != 0) ? (uP * diff * deltaX / D_1) : ((uLB * deltaX / deltaT) * (diff * deltaX / D_1));
 
-  /*****************************************************************/
-  /************************Start of Main****************************/
+    // Calculate mobility using Peclet number
+    double mlb = (1.0 / Pe) / beta;
+    double contactAngle = M_PI / 4.0;
 
-	test = new Node;
-	domain = new Domain;
+    /*****************************************************************/
+    /*********************** Start of Main ***************************/
+    /*****************************************************************/
 
-	domain->Nx = nx;
-	domain->Ny = ny;
-	domain->Read_flag = 0;
-	if (argc == 3) {
-		domain->Inputfile = argv[2];
-		domain->Read_flag = 1;
-	}
+    Domain *domain = new Domain(nx, ny);
 
-	/* Initialize a 2D vector of nodes */
+    if (argc == 3) {
+        domain->inputFile = argv[2];
+        domain->readFlag = true;
+    }
 
-  domain->Setup();
+    /* Initial_config function comes from setup.cpp & is translated from setup.py */
+    //test->Initial_config(domain, maxIter, ref_len, deltaX);
 
-	// Unique for cpp, must initialize all vectors
-	// traverse the domain, creating new nodes and initializing their values
+    /* Initialize Mu and Tau */
 
-  /* Initial_config function comes from setup.cpp & is translated from setup.py */
-
-	test->Initial_config(domain, maxIter, ref_len, deltax);
-
-  /* Initialize Mu and Tau */
+    delete domain;
+    return 0;
 }
