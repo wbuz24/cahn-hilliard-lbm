@@ -1,0 +1,46 @@
+{
+    "domain": {
+        "read_flag": true,
+        "input_file": "domains/domain.txt",
+        "write_flag": false,
+        "output_file": "domains/domain1.txt",
+        "lx": 0.001,
+        "ly": 0.001,
+        "lz": 0.000,
+        "nLB": 129,
+        "periodicity": {
+            "x": false,
+            "y": false,
+            "z": false
+        }
+    },
+    "simulation": {
+        "max_iter": 100000,
+        "restart": false,
+        "restart_iter": 0,
+        "bubble": {
+            "shape": "random"
+        },
+        "tau": 0.5
+    },
+    "fluid": {
+        "nuP": 3.64e-7,
+        "rhoP": 972.0,
+        "rho0": 1.0,
+        "Re": 0.0,
+        "sigmaP": 0.0628,
+        "sigma": 0.001
+    },
+    "ratios": {
+        "density": 0.001,
+        "viscosity": 10.0
+    },
+    "order": {
+        "phi1": 1.0,
+        "phi2": 0.0
+    },
+    "coefficients": {
+        "D_2": 2.42e-7,
+        "D_1": 2.42e-9
+    }
+}

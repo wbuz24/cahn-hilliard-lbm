@@ -1,13 +1,19 @@
 FILES = bin/cahn-hilliard
 CXX = g++
-CFLAGS = -Wall -Wextra -std=c++11 -I/include -I./include
-SRC = src/main.cpp src/Domain.cpp src/Node.cpp
-INC = include/Domain.hpp include/Node.hpp
+CFLAGS = -w -std=c++11 -I./include -I./include/nlohmann
+SRC = $(wildcard src/*.cpp)
+OBJ = $(SRC:src/%.cpp=obj/%.o)
 
-all: 
-	$(CXX) $(CFLAGS) -o $(FILES) $(SRC)
+all: $(FILES)
+
+$(FILES): $(OBJ)
+	$(CXX) $(OBJ) -o $@
+
+obj/%.o: src/%.cpp | obj
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+obj:
+	mkdir -p obj
 
 clean:
-	rm -f bin/* 
-
-
+	rm -f obj/*.o $(FILES)

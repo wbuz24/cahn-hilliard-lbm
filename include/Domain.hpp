@@ -3,21 +3,28 @@
 
 #include <vector>
 #include <string>
-#include "Node.hpp"
+#include "json.hpp"
+#include "node.hpp"
 
 class Domain {
-  public:
-    long nX; // Number of nodes in X direction
-    long nY; // Number of nodes in Y direction
-    std::vector <Node *> nodes;
+public:
+    long nX;                      // Number of nodes in X direction
+    long nY;                      // Number of nodes in Y direction
+    long nZ;                      // Number of nodes in Z direction
+    int periodicity[3];           // Periodicity in X, Y, and Z directions
 
-    std::string inputFile; // Input file name
-    bool readFlag;         // Flag to indicate if the domain is read from a file
+    bool readFlag;                // Flag to indicate if the domain is read from a file
+    bool writeFlag;               // Flag to indicate if the domain is written to a file
+    std::string inputFile;        // Input file name
+    std::string outputFile;       // Output file name
 
-    Domain(long nX, long nY);
-    ~Domain();
-    void readCSV(std::vector<int>& tempDomain);
+    std::vector <Node *> nodes;   // Nodes in the domain
+
+    Domain(long nX, long nY, long nZ, const nlohmann::json& config);
+    void readCSV();
+    void writeCSV();
     void initialize(double refLen, double deltaX);
+    void initializeMacros(double uP, double deltaT, double deltaX);
 };
 
 #endif // DOMAIN_HPP

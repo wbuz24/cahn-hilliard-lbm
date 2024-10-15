@@ -1,97 +1,95 @@
-#include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
-#include <cstring>
-#include "Domain.hpp"
+#include "json.hpp"
+#include "domain.hpp"
+#include "mathOperations.hpp"
+#include "macroscopic.hpp"
+#include "boundaryConditions.hpp"
+
+using json = nlohmann::json;
 using namespace std;
 
 int main(int argc, char** argv) {
-    if (argc > 3 || argc < 2) {
-        printf("Usage: ./bin/cahn-hilliard <Number of lattice units> <Input file>\n");
+
+    /*****************************************************************/
+    /********************** Base Definitions *************************/
+    /*****************************************************************/
+
+    // Create a JSON object and read from config file
+    json config;
+    ifstream inFile("config.json");
+
+    if (!inFile.is_open()) {
+        cerr << "Failed to open config.json for reading." << endl;
         return 1;
     }
+    inFile >> config;
+    inFile.close();
 
     // Lattice Definition
-    int e[9][2] = {
-        {1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, 0},
-        {0, -1}, {-1, 1}, {-1, 0}, {-1, -1} };
+    int e[9][2] = { {1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, 0}, {0, -1}, {-1, 1}, {-1, 0}, {-1, -1} };
 
-    double weight[9] = {
-        {1/36}, {1/9}, {1/36}, {1/9}, {4/9}, {1/9}, {1/36}, {1/9}, {1/36} };
+    double weight[9] = { {1/36}, {1/9}, {1/36}, {1/9}, {4/9}, {1/9}, {1/36}, {1/9}, {1/36} };
 
-    double h[9] = {
-        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
+    double h[9] = { {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0} };
 
-    long nLB = atoi(argv[1]); // Number of lattice units
-    long maxIter = 10001;
+    // Define domain properties
+    double lx = config["domain"]["lx"];     // Physical domain size [meters] in x and y directions
+    double ly = config["domain"]["ly"];
+    double lz = config["domain"]["lz"];
+    long nLB = config["domain"]["nLB"];     // Number of lattice units (characteristic length scale)
 
-    // Physical domain size [meters]
-    double lx = 1e-3, ly = 1e-3;
-    double ref_len = ly;      // Reference length in physical units
+    double ref_len = ly;                    // Reference length in physical units
+    double deltaX = ly / (nLB - 1);         // Lattice spacing in the x and y directions
+    double deltaY = deltaX;                 // Uniform grid
+    double deltaZ = deltaX;
 
-    // Lattice spacing in the x and y directions
-    double deltaX = ly / (nLB - 1);
-    double deltaY = deltaX;   // Uniform grid
-
-    // Number of lattice points in the x and y directions
-    long nx = lx / deltaX;
+    long nx = lx / deltaX;                  // Number of lattice points in the x and y directions
     long ny = ly / deltaY;
+    long nz = lz / deltaZ;
 
-    // Viscosity and density of the fluid (water) in physical units
-    double nuP = 3.64e-7;     // Viscosity of water at 80°C [m^2/s]
-    double rhoP = 972.0;      // Density of water at 80°C [kg/m^3]
-    double rho0 = 1.0;        // Density of water in lattice units
+    // Define fluid properties
+    double nuP = config["fluid"]["nuP"];    // Viscosity of water at 80°C [m^2/s]
+    double rhoP = config["fluid"]["rhoP"];  // Density of water at 80°C [kg/m^3]
+    double rho0 = config["fluid"]["rho0"];  // Density of water in lattice units
+    double Re = config["fluid"]["Re"];      // Reynolds number
     
-    // Limits of the order parameter
-    double phi1 = 1.0, phi2 = 0.0;
+    double phi1 = config["order"]["phi1"];  // Limits of the order parameter
+    double phi2 = config["order"]["phi2"];
 
-    // Surface tension of the air-water interface
-    double sigmaP = 6.28e-2;  // Surface tension in physical units [kg/s^2]
-    double sigma = 1e-3;      // Lattice units (must be less than 1e-3)
+    double sigmaP = config["fluid"]["sigmaP"]; // Surface tension of the air-water interface in physical units [kg/s^2]
+    double sigma = config["fluid"]["sigma"];   // Lattice units (must be less than 1e-3)
 
-    // Reynolds number
-    double Re = 0.0;          // Assume Re = 0 for now
+    double deltaM = (rhoP / rho0) * pow(deltaX, 3);      // Mass per lattice volume
+    double deltaT = sqrt((sigma / sigmaP) * deltaM);     // Lattice time step
 
-    // Velocity in physical units
-    double uP = (nuP * Re) / ref_len;
+    double uP = (nuP * Re) / ref_len;                    // Velocity in physical units
+    double nulb = nuP / (pow(deltaX, 2) / deltaT);       // Kinematic viscosity in lattice units
 
-    // Derived quantities
-    double deltaM = (rhoP / rho0) * pow(deltaX, 3);  // Mass per lattice volume
-    double deltaT = sqrt((sigma / sigmaP) * deltaM); // Lattice time step
+    double uLB = (uP != 0) ? uP / (deltaX / deltaT) : deltaT / deltaX; // Velocity in lattice units (should be much smaller than the speed of sound, 1/3)
 
-    // Kinematic viscosity in lattice units
-    double nulb = nuP / (pow(deltaX, 2) / deltaT);
-
-    // Velocity in lattice units (should be much smaller than the speed of sound, 1/3)
-    double uLB = (uP != 0) ? uP / (deltaX / deltaT) : deltaT / deltaX;
-
-    // Density and viscosity ratios for water (species 1) and air (species 2)
-    double densityRatio = 1e-3;   // Ratio rho2/rho1
-    double viscosityRatio = 10.0; // Ratio nu2/nu1
+    double densityRatio = config["ratios"]["density"];
+    double viscosityRatio = config["ratios"]["viscosity"];
 
     // Species 1 (water), Species 2 (air)
     double rho1 = rho0, rho2 = densityRatio * rho0;
     double nu1 = nulb, nu2 = viscosityRatio * nulb;
 
-    // Dynamic viscosity
-    double mu1 = rho1 * nu1;
+    double mu1 = rho1 * nu1; // Dynamic viscosity
     double mu2 = rho2 * nu2;
 
     // Cahn-Hilliard parameters define surface tension
-    double diff = 0.1 * (ly / deltaX);  // Diffusive interface thickness
-    double k = (3.0 / 2.0) * sigma * diff / sqrt(phi1 - phi2);  // Surface tension coefficient
+    double diff = 0.1 * (ly / deltaX);                              // Diffusive interface thickness
+    double k = (3.0 / 2.0) * sigma * diff / sqrt(phi1 - phi2);      // Surface tension coefficient
     double beta = (12.0 / pow((phi1 - phi2), 4)) * (sigma / diff);  // Energy parameter
 
-    // Diffusion coefficients
-    double D_2 = 2.42e-7;  // Diffusion coefficient of O2 in water [m^2/s]
-    double D_1 = 2.42e-9;  // Diffusion coefficient of water in water [m^2/s]
+    double D_2 = config["coefficients"]["D_2"];  // Diffusion coefficient of O2 in water [m^2/s]
+    double D_1 = config["coefficients"]["D_1"];  // Diffusion coefficient of water in water [m^2/s]
 
-    // Weber number
-    double We = pow(uLB, 2) * (ref_len / deltaX) * (rho1 - rho2) / sigma;
-
-    // Pecelet number definition
-    double Pe = (uP != 0) ? (uP * diff * deltaX / D_1) : ((uLB * deltaX / deltaT) * (diff * deltaX / D_1));
+    double We = pow(uLB, 2) * (ref_len / deltaX) * (rho1 - rho2) / sigma;  // Weber number
+    double Pe = (uP != 0) ? (uP * diff * deltaX / D_1) : ((uLB * deltaX / deltaT) * (diff * deltaX / D_1)); // Pecelet number definition
 
     // Calculate mobility using Peclet number
     double mlb = (1.0 / Pe) / beta;
@@ -101,18 +99,69 @@ int main(int argc, char** argv) {
     /*********************** Start of Main ***************************/
     /*****************************************************************/
 
-    Domain *domain = new Domain(nx, ny);
+    Domain domain(nx, ny, nz, config);
 
-    if (argc == 3) {
-        domain->inputFile = argv[2];
-        domain->readFlag = true;
+    domain.initialize(ref_len, deltaX);
+
+    domain.initializeMacros(uP, deltaT, deltaX);
+
+    // Initialize rho, mu and tau
+    for (auto& node : domain.nodes) {
+        node->rho = (rho1 * (node->phi - phi2) + rho2 * (phi1 - node->phi)) / (phi1 - phi2);
+        node->mu = 2 * beta * (node->phi - phi2) * (node->phi - phi1) * (2 * node->phi - (phi2 + phi1));
+        node->tau = config["simulation"]["tau"];
     }
 
-    /* Initial_config function comes from setup.cpp & is translated from setup.py */
-    //test->Initial_config(domain, maxIter, ref_len, deltaX);
+    // Gradient calculations
 
-    /* Initialize Mu and Tau */
+    // Initial equilibrium distribution based on the macroscopic values
 
-    delete domain;
+    // Hin equilibrium
+
+    // Initializing residuals and other variables
+
+    // Simulation parameters
+    double initialIter = 0;
+    if (config["simulation"]["restart"]) {
+        initialIter = config["simulation"]["restart_iter"];
+    }
+    double maxIter = config["simulation"]["max_iter"];
+
+    double res_phi = 1.0;
+    double time = 0.0;
+    double epsilon_p = tan(M_PI / 2); // Set epsilon_p to tan(pi/2) (5e-1 would be another possible value as mentioned)
+    double res_u = 1.0;
+
+    // Compute loop goes here:
+    try {
+        for (double time = initialIter; time < maxIter; time++) {
+            // Update macroscopic values
+            macroscopic(domain);
+
+            // Update boundary conditions
+            boundryConfig(domain);
+
+            // Update other values
+
+            // Compute equilibrium distribution
+
+            // Collision step
+
+            // Streaming step
+
+            // Boundary conditions
+
+            // Compute residuals
+
+            // Check for convergence
+
+            // Output info as needed
+    
+        }
+    } catch (runtime_error &e) {
+        cout << "Simulation stopped. Error." << endl;
+        return 1;
+    }
+    cout << "Simulation complete." << endl;
     return 0;
 }
