@@ -4,13 +4,10 @@
 #include <vector>
 #include <string>
 
-class Domain; // Forward declaration
-
 class Node {
 public:
     int x;
     int y;
-    int z;
     int id;
     /* 
     Node ID key:
@@ -35,7 +32,7 @@ public:
     double mu;     // Dynamic viscosity
     double tau;    // Relaxation time
     double p;      // Pressure
-    double u[3];   // Velocity components: u[0]=u_x, u[1]=u_y, u[2]=u_z
+    double u[2];   // Velocity components: u[0]=u_x, u[1]=u_y
 
     // Simulation values
     double muOld;
@@ -62,7 +59,7 @@ public:
 
     std::vector<Node*> neighbors;
 
-    Node(int posX, int posY, int posZ);
+    Node(int posX, int posY);
 };
 
 #endif // NODE_HPP
