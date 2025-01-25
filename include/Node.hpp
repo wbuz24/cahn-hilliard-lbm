@@ -2,12 +2,11 @@
 #define NODE_HPP
 
 #include <vector>
-#include <string>
 
 class Node {
 public:
-    int x;
-    int y;
+    long x;
+    long y;
     int id;
     /* 
     Node ID key:
@@ -27,38 +26,56 @@ public:
     */
 
     // Physical properties
-    double phi;    // Order parameter
-    double rho;    // Density
-    double mu;     // Dynamic viscosity
-    double tau;    // Relaxation time
-    double p;      // Pressure
-    double u[2];   // Velocity components: u[0]=u_x, u[1]=u_y
-
-    // Simulation values
+    double uX;       // Velocity in x direction
+    double uY;       // Velocity in y direction
+    double phi;      // Order parameter
+    double rho;      // Density
+    double tau;      // Relaxation time
+    double p;        // Pressure
+    double pStar;
+    double thermoP;  // Thermodynamic pressure
+    double mbl;      // Mobility
+    double nu;       // Kinematic viscosity
+    double mu;       // Dynamic viscosity
+    double mu0;
     double muOld;
+
+    // Gradient values
     double d2mu;
-    double dudy;
-    double dvdy;
     double dudx;
+    double dudy;
     double dvdx;
-    double biased_dudy;
-    double biased_dvdx;
-    double biased_dudx;
-    double biased_dvdy;
-    double e_dudy;
-    double e_dvdx;
-    double usqr;
+    double dvdy;
+    double dpdx;
+    double dpdy;
+    double dphidx;
+    double dphidy;
+    double d2phidx2;
+    double biasedDudx;
+    double biasedDudy;
+    double biasedDvdx;
+    double biasedDvdy;
+    double uSqr;
+    std::vector<double> eDvdx;
+    std::vector<double> eDudy;
 
-    // Distribution functions (size 9 for D2Q9 model)
-    std::vector<double> h;          // Equilibrium distribution function
-    std::vector<double> hBarIn;     // Incoming distribution function
-    std::vector<double> hBarOut;    // Outgoing distribution function
-    std::vector<double> G;          // For Cahn-Hilliard equation
-    std::vector<double> GBarIn;
-    std::vector<double> GBarOut;
+    // Particle distribution functions (size 9 for D2Q9 model)
+    std::vector<double> gIn;
+    std::vector<double> gEq;
+    std::vector<double> gBarIn;
+    std::vector<double> gBarOut;
+    std::vector<double> gBarEq;
+    std::vector<double> sourceGBar;
 
-    std::vector<Node*> neighbors;
+    std::vector<double> hIn;
+    std::vector<double> hEq;
+    std::vector<double> hBarIn;
+    std::vector<double> hBarOut;
+    std::vector<double> hBarEq;
+    std::vector<double> sourceHBar;
 
+    // Implement a neighbor look up w T/F flags
+    std::vector<bool> neighborLookup;;
     Node(int posX, int posY);
 };
 

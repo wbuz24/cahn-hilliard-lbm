@@ -7,6 +7,8 @@
 #include "mathOperations.hpp"
 #include "macroscopic.hpp"
 #include "boundaryConditions.hpp"
+#include "equilibrium.hpp"
+#include "collideAndStream.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -26,60 +28,92 @@ int main(int argc, char** argv) {
     // Initialize simulation constants from config
     Constants constants(config);
 
-    // Create domain
-    Domain domain(constants.nx, constants.ny, config);
+    long nX = constants.nx;
+    long nY = constants.ny;
 
-    // Set node neighbors in all 9 directions
-    for (auto& node : domain.nodes) {
-        for (int i = 0; i < 9; i++) {
-            int x = node->x + constants.e[i][0];
-            int y = node->y + constants.e[i][1];
+    // Create domain and initialize node variables (u, p, phi, rho, mu0, tau)
+    Domain domain(nX, nY);
+    domain.initialize(config, constants);
 
-            if (x >= 0 && x < constants.nx && y >= 0 && y < constants.ny) {
-                node->neighbors.push_back(domain.nodes[x * constants.ny + y]);
-            } else {
-                node->neighbors.push_back(nullptr);
-            }
+    // Initial calculation of mu
+    laplace(domain, &Node::phi, &Node::muOld);
+
+    for (int i = 0; i < nX; i++) {
+        for (int j = 0; j < nY; j++) {
+            Node* node = domain.nodes[i][j];
+            node->muOld = node->mu0 - (constants.k * node->muOld);
         }
     }
 
-    // Initial phi, rho, p, u, mu, tau
-    domain.initialize(config, constants);
-
     // Gradient calculations
+    laplace(domain, &Node::muOld, &Node::d2mu);
+    
+    derivativeY(domain, &Node::uX, &Node::dudy);
+    derivativeX(domain, &Node::uY, &Node::dvdx);
+    derivativeX(domain, &Node::uX, &Node::dudx);
+    derivativeY(domain, &Node::uY, &Node::dvdy);
+
+    eGrad(domain, &Node::uX, &Node::eDudy);
+    eGrad(domain, &Node::uY, &Node::eDvdx);
+    uSqr(domain);
+
     // Initial equilibrium distribution based on the macroscopic values
-    // Hin equilibrium
-    // Initializing residuals and other variables
+    equilibriumG(domain);
+    equilibriumH(domain);
 
-    // Simulation parameters
-    double initialIter = 0;
-    if (config["simulation"]["restart"]) {
-        initialIter = config["simulation"]["restart_iter"];
-    }
-    double maxIter = config["simulation"]["max_iter"];
+    // Initialize residual values
+    /* WHAT ARE THE VALUES HERE??? in python code */
 
-    double res_phi = 1.0;
-    double time = 0.0;
-    double epsilon_p = tan(M_PI / 2); // Set epsilon_p to tan(pi/2) (5e-1 would be another possible value as mentioned)
-    double res_u = 1.0;
-
-    // Compute loop goes here:
+    double time = 0;
+    double iter = config["simulation"]["max_iter"];
     try {
-        for (double time = initialIter; time < maxIter; time++) {
+        for (time = 0; time < iter; time++) {
             // Update macroscopic values
-            macroscopic(domain);
+            macroscopic(domain, constants);
 
             // Update boundary conditions
             boundryConfig(domain);
 
-            // Update other values
-            // Compute equilibrium distribution
-            // Collision step
-            // Streaming step
-            // Boundary conditions
-            // Compute residuals
-            // Check for convergence
-            // Output info as needed
+            // Update muOld
+            for (int i = 0; i < nX; i++) {
+                for (int j = 0; j < nY; j++) {
+                    domain.nodes[i][j]->muOld = domain.nodes[i][j]->mu;
+                }
+            }
+
+            // Gradient calculations
+            laplace(domain, &Node::mu, &Node::d2mu);
+            
+            derivativeY(domain, &Node::uX, &Node::dudy);
+            derivativeX(domain, &Node::uY, &Node::dvdx);
+            derivativeX(domain, &Node::uX, &Node::dudx);
+            derivativeY(domain, &Node::uY, &Node::dvdy);
+
+            eGrad(domain, &Node::uX, &Node::eDudy);
+            eGrad(domain, &Node::uY, &Node::eDvdx);
+            uSqr(domain);
+
+            // Update equilibrium values and sources
+            equilibriumG(domain);
+            // sourceG(domain);
+
+            equilibriumH(domain);
+            // sourceH(domain);
+            
+            // Zou He BC
+            // Wall
+            // Inlet
+            // Outlet
+
+            // Collide and stream steps
+            collide(domain);
+            stream(domain);
+
+            /* NEED TO CHECK WHAT THIS IS??? */
+            // Calculate residual values
+
+            // Output
+            cout << "Iteration: " << time << " / " << iter << endl;
         }
     } catch (runtime_error &e) {
         cout << "Simulation stopped. Error." << endl;

@@ -5,29 +5,6 @@
 
 // Constructor implementation
 Constants::Constants(const nlohmann::json& config) {
-    // Lattice Definition
-    e[0][0] = 1; e[0][1] = 1;
-    e[1][0] = 1; e[1][1] = 0;
-    e[2][0] = 1; e[2][1] = -1;
-    e[3][0] = 0; e[3][1] = 1;
-    e[4][0] = 0; e[4][1] = 0;
-    e[5][0] = 0; e[5][1] = -1;
-    e[6][0] = -1; e[6][1] = 1;
-    e[7][0] = -1; e[7][1] = 0;
-    e[8][0] = -1; e[8][1] = -1;
-
-    weight[0] = 1.0 / 36.0; 
-    weight[1] = 1.0 / 9.0; 
-    weight[2] = 1.0 / 36.0; 
-    weight[3] = 1.0 / 9.0;
-    weight[4] = 4.0 / 9.0; 
-    weight[5] = 1.0 / 9.0; 
-    weight[6] = 1.0 / 36.0; 
-    weight[7] = 1.0 / 9.0; 
-    weight[8] = 1.0 / 36.0;
-
-    for (int i = 0; i < 9; ++i)  h[i] = 0.0;
-
     // Define domain properties
     lx = config["domain"]["lx"];
     ly = config["domain"]["ly"];
@@ -39,6 +16,12 @@ Constants::Constants(const nlohmann::json& config) {
 
     nx = lx / deltaX;
     ny = ly / deltaY;
+
+    gX = config["gravity"]["gx"];
+    gY = config["gravity"]["gy"];
+
+    tau = config["simulation"]["tau"];
+    axisSymmetry = config["simulation"]["axis_symmetry"];
 
     // Define fluid properties
     nuP = config["fluid"]["nuP"];
@@ -73,18 +56,24 @@ Constants::Constants(const nlohmann::json& config) {
     mu2 = rho2 * nu2;
 
     // Cahn-Hilliard parameters define surface tension
-    diff = 0.1 * (ly / deltaX);
-    k = (3.0 / 2.0) * sigma * diff / sqrt(phi1 - phi2);
-    beta = (12.0 / pow((phi1 - phi2), 4)) * (sigma / diff);
+    W = 5;
+
+    if (axisSymmetry) {
+        k = (3.0 / 2.0) * sigma * W / pow(phi1 - phi2, 2);
+        beta = (12.0 / pow(phi1 - phi2, 4)) * (sigma / W);
+    } else {
+        k = (3.0 / 2.0) * (0.5 * sigma) * W / pow(phi1 - phi2, 2);
+        beta = (12.0 / pow(phi1 - phi2, 4)) * ((0.5 * sigma) / W);
+    }
 
     D_2 = 2.42e-7;
     D_1 = 2.42e-9;
 
     We = pow(uLB, 2) * (ref_len / deltaX) * (rho1 - rho2) / sigma;
-    Pe = (uP != 0) ? (uP * diff * deltaX / D_1) : ((uLB * deltaX / deltaT) * (diff * deltaX / D_1));
+    Pe = (uP != 0) ? (1.1 / beta) : (1.1 / beta);
 
-    // Calculate mobility using Peclet number
-    mlb = (1.0 / Pe) / beta;
+    eta = 2;
+    mlb = (eta * tau) / 3;
     contactAngle = M_PI / 4.0;
 }
 

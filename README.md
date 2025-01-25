@@ -6,6 +6,8 @@ This is code for solving the Cahn-Hilliard Navier-Stokes coupled multiphase LBM 
 
 The code is based on the works of by T. Lee, et al., 2005 1, 2 and 3.
 
+Based on a [Python Model](https://github.com/FridaRonning/UTK-LBM-Electrolyzer-Project) developed by Frida Roenning & Anirban Roy.
+
 ## C++ Model
 
 Written by Undergraduate students Will Buziak & Price LeNoir
@@ -20,15 +22,11 @@ Compile with make
 make
 ```
 
-Run from the command line
+Adjust simulation and parameter values in config.json. Run from the command line
 
 ```
-./bin/cahn-hilliard Number-Of-Lattice-Units Input-File
+./bin/cahn-hilliard
 ```
-
-An input file can be optionally specified, if so it will read in a csv file that will then apply to the domain.
-
-Translated from [Python Model](https://github.com/wbuz24/UTK-LBM-Electrolyzer-Project) developed by Frida Roenning & Anirban Roy 
 
 ## Advisors
 
