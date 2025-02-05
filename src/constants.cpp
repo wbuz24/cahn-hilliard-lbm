@@ -3,7 +3,6 @@
 
 #include "constants.hpp"
 
-// Constructor implementation
 Constants::Constants(const nlohmann::json& config) {
     // Define domain properties
     lx = config["domain"]["lx"];

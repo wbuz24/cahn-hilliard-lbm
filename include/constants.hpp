@@ -16,8 +16,10 @@ struct Constants {
     double gX;             // Gravity in the x direction
     double gY;             // Gravity in the y direction
 
+    // Define simulation properties
+    double max_iter;       // Maximum number of iterations
     double tau;            // Relaxation time
-    bool axisSymmetry;      // Axis symetry flag
+    bool axisSymmetry;     // Axis symetry flag
 
     // Define fluid properties
     double nuP;            // Viscosity of water at 80°C [m^2/s]
@@ -40,11 +42,11 @@ struct Constants {
 
     // Species 1 (water), Species 2 (air)
     double rho1, rho2;
-    double nu1, nu2; 
+    double nu1, nu2;       // Kinematic viscosity
     double mu1, mu2;       // Dynamic viscosity
 
     // Cahn-Hilliard parameters define surface tension
-    double W;           // Diffusive interface thickness
+    double W;              // Diffusive interface thickness
     double k;              // Surface tension coefficient
     double beta;           // Energy parameter
 

@@ -1,6 +1,6 @@
 FILES = bin/cahn-hilliard
 CXX = g++
-CFLAGS = -w -std=c++11 -I./include -I./include/nlohmann
+CFLAGS = -w -std=c++17 -I./include -I./include/nlohmann
 SRC = $(wildcard src/*.cpp)
 OBJ = $(SRC:src/%.cpp=obj/%.o)
 

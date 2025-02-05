@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cmath>
 #include "json.hpp"
 #include "constants.hpp"
 #include "domain.hpp"
@@ -9,6 +10,7 @@
 #include "boundaryConditions.hpp"
 #include "equilibrium.hpp"
 #include "collideAndStream.hpp"
+#include "edgeClassifier.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -34,6 +36,9 @@ int main(int argc, char** argv) {
     // Create domain and initialize node variables (u, p, phi, rho, mu0, tau)
     Domain domain(nX, nY);
     domain.initialize(config, constants);
+
+    // Find edge nodes and classify boundary conditions
+    findBoundary(domain);
 
     // Initial calculation of mu
     laplace(domain, &Node::phi, &Node::muOld);
@@ -61,13 +66,10 @@ int main(int argc, char** argv) {
     equilibriumG(domain);
     equilibriumH(domain);
 
-    // Initialize residual values
-    /* WHAT ARE THE VALUES HERE??? in python code */
-
-    double time = 0;
-    double iter = config["simulation"]["max_iter"];
+    int maxIter = config["simulation"]["max_iter"];
+    int saveDomainIter = config["simulation"]["save_domain_iter"];
     try {
-        for (time = 0; time < iter; time++) {
+        for (int iter = 0; iter < maxIter; iter++) {
             // Update macroscopic values
             macroscopic(domain, constants);
 
@@ -75,8 +77,8 @@ int main(int argc, char** argv) {
             boundryConfig(domain);
 
             // Update muOld
-            for (int i = 0; i < nX; i++) {
-                for (int j = 0; j < nY; j++) {
+            for (long i = 0; i < nX; i++) {
+                for (long j = 0; j < nY; j++) {
                     domain.nodes[i][j]->muOld = domain.nodes[i][j]->mu;
                 }
             }
@@ -95,10 +97,10 @@ int main(int argc, char** argv) {
 
             // Update equilibrium values and sources
             equilibriumG(domain);
-            // sourceG(domain);
+            sourceG(domain, constants);
 
             equilibriumH(domain);
-            // sourceH(domain);
+            sourceH(domain, constants);
             
             // Zou He BC
             // Wall
@@ -109,11 +111,10 @@ int main(int argc, char** argv) {
             collide(domain);
             stream(domain);
 
-            /* NEED TO CHECK WHAT THIS IS??? */
-            // Calculate residual values
-
-            // Output
-            cout << "Iteration: " << time << " / " << iter << endl;
+            if (iter % saveDomainIter == 0 && iter != 0) {
+                cout << "Iteration: " << iter << " / " << maxIter << ". Saving domain..." << endl;
+                domain.save(config, iter);
+            }
         }
     } catch (runtime_error &e) {
         cout << "Simulation stopped. Error." << endl;

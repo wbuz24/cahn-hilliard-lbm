@@ -15,6 +15,9 @@ Node::Node(int x_coord, int y_coord) : x(x_coord), y(y_coord), id(0) {
 	mu = 0;
 	mu0 = 0;
 	muOld = 0;
+	forceX = 0;
+	forceY = 0;
+	tmp = 0;
 
 	d2mu = 0;
 	dudx = 0;
@@ -23,13 +26,11 @@ Node::Node(int x_coord, int y_coord) : x(x_coord), y(y_coord), id(0) {
 	dvdy = 0;
 	dpdx = 0;
 	dpdy = 0;
+	dpStardx = 0;
+	dpStardy = 0;
 	dphidx = 0;
 	dphidy = 0;
 	d2phidx2 = 0;
-	biasedDudx = 0;
-	biasedDudy = 0;
-	biasedDvdx = 0;
-	biasedDvdy = 0;
 	uSqr = 0;
 
 	eDudy.resize(9, 0);
@@ -48,6 +49,4 @@ Node::Node(int x_coord, int y_coord) : x(x_coord), y(y_coord), id(0) {
 	hBarOut.resize(9, 0);
 	hBarEq.resize(9, 0);
 	sourceHBar.resize(9, 0);
-
-	neighborLookup.resize(12, false);
 }

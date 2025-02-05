@@ -11,8 +11,9 @@ public:
     /* 
     Node ID key:
         0 = General fluid node
-        3 = Inlet
-        4 = Outlet
+        3 = Inlet node
+        4 = Outlet node
+        5 = Edge node
         20 = Solid node
         21-29 = Fluid node next to solid
           21 = ne
@@ -32,13 +33,16 @@ public:
     double rho;      // Density
     double tau;      // Relaxation time
     double p;        // Pressure
-    double pStar;
+    double pStar;    //
     double thermoP;  // Thermodynamic pressure
     double mbl;      // Mobility
     double nu;       // Kinematic viscosity
     double mu;       // Dynamic viscosity
     double mu0;
     double muOld;
+    double forceX;   // Source gravity in x direction
+    double forceY;   // Source gravity in y direction
+    double tmp;      // Temporary variable to store intermediate values
 
     // Gradient values
     double d2mu;
@@ -48,13 +52,11 @@ public:
     double dvdy;
     double dpdx;
     double dpdy;
+    double dpStardx;
+    double dpStardy;
     double dphidx;
     double dphidy;
     double d2phidx2;
-    double biasedDudx;
-    double biasedDudy;
-    double biasedDvdx;
-    double biasedDvdy;
     double uSqr;
     std::vector<double> eDvdx;
     std::vector<double> eDudy;
@@ -74,8 +76,8 @@ public:
     std::vector<double> hBarEq;
     std::vector<double> sourceHBar;
 
-    // Implement a neighbor look up w T/F flags
-    std::vector<bool> neighborLookup;;
+    std::vector<int> neighbors;  // Neighbor look-up table
+
     Node(int posX, int posY);
 };
 
