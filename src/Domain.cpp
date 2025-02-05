@@ -52,6 +52,7 @@ void readInputFile(long nX, long nY, const string& filename, function<void(long,
     fin.close();
 }
 
+// Lambda function to write CSV output files
 template <typename T>
 void writeOutputFile(long nX, long nY, const string& filename, function<T(long, long)> retrieveFunc) {
     ofstream fout(filename);
@@ -82,7 +83,12 @@ void Domain::initialize(const nlohmann::json& config, Constants &constants) {
     periodicity[0] = config["domain"]["periodicity"]["x"] ? 1 : 0;
     periodicity[1] = config["domain"]["periodicity"]["y"] ? 1 : 0;
 
+    if (!fs::exists("domain/")) {
+        cout << "Domain directory not found." << endl;
+    }
+
     string domainDir = config["domain"]["domain_dir"];
+    domainDir = "domain/" + domainDir;
 
     // Read in domain file
     string inputFile = domainDir + "/domain.txt";
@@ -135,7 +141,12 @@ void Domain::initialize(const nlohmann::json& config, Constants &constants) {
 
 void Domain::save(const nlohmann::json& config, int iter) {
     // Create output directory
+    if (!fs::exists("output/")) {
+        fs::create_directory("output/");
+    }
+
     string outputDir = config["simulation"]["output_dir"];
+    outputDir = "output/" + outputDir;
     if (!fs::exists(outputDir)) {
         fs::create_directory(outputDir);
     }
