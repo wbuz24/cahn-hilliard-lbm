@@ -10,7 +10,7 @@
 #include "boundaryConditions.hpp"
 #include "equilibrium.hpp"
 #include "collideAndStream.hpp"
-#include "edgeClassifier.hpp"
+#include "edgeNormalClassifier.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -37,27 +37,25 @@ int main(int argc, char** argv) {
     Domain domain(nX, nY);
     domain.initialize(config, constants);
 
-    // Find edge nodes and classify boundary conditions
-    findBoundary(domain);
+    // Classify edge nodes and normal nodes
+    identifyEdges(domain);
+    classifyBC(domain);
 
     // Initial calculation of mu
-    laplace(domain, &Node::phi, &Node::muOld);
-
+    laplace(domain, &Node::phi, &Node::oldMu);
     for (int i = 0; i < nX; i++) {
         for (int j = 0; j < nY; j++) {
             Node* node = domain.nodes[i][j];
-            node->muOld = node->mu0 - (constants.k * node->muOld);
+            node->oldMu = node->mu0 - (constants.k * node->oldMu);
         }
     }
 
     // Gradient calculations
-    laplace(domain, &Node::muOld, &Node::d2mu);
-    
+    laplace(domain, &Node::oldMu, &Node::d2mu);
     derivativeY(domain, &Node::uX, &Node::dudy);
     derivativeX(domain, &Node::uY, &Node::dvdx);
     derivativeX(domain, &Node::uX, &Node::dudx);
     derivativeY(domain, &Node::uY, &Node::dvdy);
-
     eGrad(domain, &Node::uX, &Node::eDudy);
     eGrad(domain, &Node::uY, &Node::eDvdx);
     uSqr(domain);
@@ -65,6 +63,8 @@ int main(int argc, char** argv) {
     // Initial equilibrium distribution based on the macroscopic values
     equilibriumG(domain);
     equilibriumH(domain);
+
+    cout << "Setup complete. Starting simulation..." << endl;
 
     int maxIter = config["simulation"]["max_iter"];
     int saveDomainIter = config["simulation"]["save_domain_iter"];
@@ -76,21 +76,19 @@ int main(int argc, char** argv) {
             // Update boundary conditions
             boundryConfig(domain);
 
-            // Update muOld
+            // Update old mu values
             for (long i = 0; i < nX; i++) {
                 for (long j = 0; j < nY; j++) {
-                    domain.nodes[i][j]->muOld = domain.nodes[i][j]->mu;
+                    domain.nodes[i][j]->oldMu = domain.nodes[i][j]->mu;
                 }
             }
 
             // Gradient calculations
             laplace(domain, &Node::mu, &Node::d2mu);
-            
             derivativeY(domain, &Node::uX, &Node::dudy);
             derivativeX(domain, &Node::uY, &Node::dvdx);
             derivativeX(domain, &Node::uX, &Node::dudx);
             derivativeY(domain, &Node::uY, &Node::dvdy);
-
             eGrad(domain, &Node::uX, &Node::eDudy);
             eGrad(domain, &Node::uY, &Node::eDvdx);
             uSqr(domain);
@@ -110,6 +108,8 @@ int main(int argc, char** argv) {
             // Collide and stream steps
             collide(domain);
             stream(domain);
+
+            domain.calcResiduals();
 
             if (iter % saveDomainIter == 0 && iter != 0) {
                 cout << "Iteration: " << iter << " / " << maxIter << ". Saving domain..." << endl;

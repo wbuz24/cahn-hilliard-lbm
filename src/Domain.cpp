@@ -14,11 +14,12 @@ using namespace std;
 namespace fs = std::filesystem;
 
 Domain::Domain(long nx, long ny) : nX(nx), nY(ny) {
-    nodes.reserve(nX * nY);
+    nodes.resize(nX);
 
     for (long i = 0; i < nX; ++i) {
+        nodes[i].resize(nY, nullptr);
         for (long j = 0; j < nY; ++j) {
-            nodes[i].push_back(new Node(i, j));
+            nodes[i][j] = new Node(i, j);
         }
     }
 }
@@ -185,4 +186,8 @@ void Domain::save(const nlohmann::json& config, int iter) {
     writeOutputFile<double>(nX, nY, outputFile, [this](long i, long j) {
         return nodes[i][j]->uY;
     });
+}
+
+void Domain::calcResiduals() {
+    return;
 }

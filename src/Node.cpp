@@ -9,15 +9,24 @@ Node::Node(int x_coord, int y_coord) : x(x_coord), y(y_coord), id(0) {
 	tau = 0;
 	p = 0;
 	pStar = 0;
-	thermoP = 0;
+	pThermo = 0;
 	mbl = 0;
 	nu = 0;
 	mu = 0;
-	mu0 = 0;
-	muOld = 0;
 	forceX = 0;
 	forceY = 0;
 	tmp = 0;
+
+	resUX = 1;
+	resUY = 1;
+	resPhi = 1;
+	resP = 1;
+	oldUX = 0;
+	oldUY = 0;
+	oldPhi = 1;
+	oldP = 0;
+	oldMu = 0;
+	mu0 = 0;
 
 	d2mu = 0;
 	dudx = 0;
@@ -37,16 +46,12 @@ Node::Node(int x_coord, int y_coord) : x(x_coord), y(y_coord), id(0) {
 	eDvdx.resize(9, 0);
 
 	gIn.resize(9, 0);
+	gOut.resize(9, 0);
 	gEq.resize(9, 0);
-	gBarIn.resize(9, 0);
-	gBarOut.resize(9, 0);
-	gBarEq.resize(9, 0);
-	sourceGBar.resize(9, 0);
+	sourceG.resize(9, 0);
 
 	hIn.resize(9, 0);
+	hOut.resize(9, 0);
 	hEq.resize(9, 0);
-	hBarIn.resize(9, 0);
-	hBarOut.resize(9, 0);
-	hBarEq.resize(9, 0);
-	sourceHBar.resize(9, 0);
+	sourceH.resize(9, 0);
 }

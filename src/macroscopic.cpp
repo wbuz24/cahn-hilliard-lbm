@@ -93,7 +93,7 @@ void macroscopic(Domain &domain, Constants &constants) {
             node->uY = node->uY + (0.5 * node->forceY) / node->rho;
 
             // Thermodynamic pressure calculation
-            node->thermoP = node->p + (node->phi * node->mu0 - beta * pow((pow(node->phi, 2) - node->phi), 2)) - k * node->phi * node->d2phidx2 + 0.5 * k * (pow(node->dphidx, 2) + pow(node->dphidy, 2));
+            node->pThermo = node->p + (node->phi * node->mu0 - beta * pow((pow(node->phi, 2) - node->phi), 2)) - k * node->phi * node->d2phidx2 + 0.5 * k * (pow(node->dphidx, 2) + pow(node->dphidy, 2));
         }
     }
     return;

@@ -7,11 +7,24 @@
 #include "constants.hpp"
 
 // Directional offsets for neighbors
+/* 
+    # D2Q9 Lattice structure
+    #   6         3         0
+    #      .      ^     .
+    #         .   |   .
+    #           . | . 
+    #   7 <------ 4 ------> 1
+    #           . |  .
+    #        .    |     .
+    #     .       v       .
+    #   8         5         2
+*/
 static int e[9][2] = {
     { 1,  1}, { 1,  0}, { 1, -1},
     { 0,  1}, { 0,  0}, { 0, -1},
     {-1,  1}, {-1,  0}, {-1, -1}
 };
+
 
 // Weights
 static double w[9] = {1.0 / 36, 1.0 / 9, 1.0 / 36, 1.0 / 9, 4.0 / 9, 1.0 / 9, 1.0 / 36, 1.0 / 9, 1.0 / 36};
@@ -27,6 +40,7 @@ public:
     Domain(long nX, long nY);
     void initialize(const nlohmann::json& config, Constants &constants);
     void save(const nlohmann::json& config, int iter);
+    void calcResiduals();
 };
 
 #endif // DOMAIN_HPP

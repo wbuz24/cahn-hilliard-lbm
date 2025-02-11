@@ -9,8 +9,8 @@ void collide(Domain &domain) {
 
             if (node->id != 20) {
                 for (int i = 0; i < 9; i++) {
-                    node->gBarOut[i] = node->gBarIn[i] - (node->gBarIn[i] - node->gBarEq[i])/(node->tau + 0.5) + node->sourceGBar[i];
-                    node->hBarOut[i] = node->hBarIn[i] - (node->hBarIn[i] - node->hBarEq[i])/(node->tau + 0.5) + node->sourceHBar[i];
+                    node->gOut[i] = node->gIn[i] - (node->gIn[i] - node->gEq[i])/(node->tau + 0.5) + node->sourceG[i];
+                    node->hOut[i] = node->hIn[i] - (node->hIn[i] - node->hEq[i])/(node->tau + 0.5) + node->sourceH[i];
                 }
             }
 
@@ -69,8 +69,8 @@ void stream(Domain &domain) {
                     continue;
                 }
 
-                domain.nodes[nextX][nextY]->gBarIn[i] = node->gBarOut[i];
-                domain.nodes[nextX][nextY]->hBarIn[i] = node->hBarOut[i];
+                domain.nodes[nextX][nextY]->gIn[i] = node->gOut[i];
+                domain.nodes[nextX][nextY]->hIn[i] = node->hOut[i];
             }
         }
     }

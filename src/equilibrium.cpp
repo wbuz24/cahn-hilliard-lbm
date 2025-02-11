@@ -25,7 +25,7 @@ void equilibriumG(Domain &domain) {
                     fEq = node->rho * gammaU;
                     
                     /* Equilibrium g calculation */
-                    node->gBarEq[k] = w[k] * node->pStar + (fEq - w[k]);
+                    node->gEq[k] = w[k] * node->pStar + (fEq - w[k]);
                 }
             }
         }
@@ -111,7 +111,7 @@ void sourceG(Domain &domain, Constants &constants) {
              if (node->id != 20) {
                 for (int k; k < 9; k++) {
                     eU = e[k][0] * node->uX + e[k][1] * node->uY;
-                    node->sourceGBar[k] = 0.5 * w[k] * (3 * (e[k][0] - node->uX) * node->forceX + 3 * (e[k][1] - node->uY) * node->forceY + 9 * eU * (e[k][0] * node->forceX + e[k][1] * node->forceY));
+                    node->sourceG[k] = 0.5 * w[k] * (3 * (e[k][0] - node->uX) * node->forceX + 3 * (e[k][1] - node->uY) * node->forceY + 9 * eU * (e[k][0] * node->forceX + e[k][1] * node->forceY));
                 }
             }
         }
@@ -139,7 +139,7 @@ void sourceH(Domain &domain, Constants &constants) {
             L2NormEGradPhi = sqrt(pow(node->dphidx, 2) + pow(node->dphidy, 2));
             
             if (node->id != 20) {
-                double L2NormThrshld = 0.00005; // DOES THIS NEED TO BE IN JSON???
+                double L2NormThrshld = 0.00005;
                 if (L2NormEGradPhi >= L2NormThrshld) {
                     interfaceNormalX = node->dphidx / L2NormEGradPhi;
                     interfaceNormalY = node->dphidy / L2NormEGradPhi;
@@ -150,7 +150,7 @@ void sourceH(Domain &domain, Constants &constants) {
                                 
                 for (int k; k < 9; k++) {
                     eU = e[k][0] * node->uX + e[k][1] * node->uY;
-                    node->sourceHBar[k] = 0.5 * w[k] * node->mbl * (3 * (e[k][0] - node->uX) * node->forceX + 3 * (e[k][1] - node->uY) * node->forceY + 9 * eU * (e[k][0] * node->forceX + e[k][1] * node->forceY));
+                    node->sourceH[k] = 0.5 * w[k] * node->mbl * (3 * (e[k][0] - node->uX) * node->forceX + 3 * (e[k][1] - node->uY) * node->forceY + 9 * eU * (e[k][0] * node->forceX + e[k][1] * node->forceY));
                 }
             }
         }
